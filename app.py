@@ -15,7 +15,10 @@ st.title('Fermi Grader')
 st.caption('Local handwriting recognition · editable answers · separate B and C divisions')
 
 @st.cache_resource
-def reader():
+def reader(engine='TrOCR Small'):
+    if engine == 'PaddleOCR (trial)':
+        from paddle_recognition import PaddleReader
+        return PaddleReader()
     from recognition import Reader
     return Reader()
 
@@ -123,12 +126,14 @@ with grade_tab:
                     st.session_state.sheet_id = identity
                     st.session_state.rows = [{'Question':i+1,'Handwriting':image_url(crop),'Answer':'','Warning':'Not read yet','Reviewed':False} for i,crop in enumerate(crops)]
                     st.session_state.editor_version = st.session_state.get('editor_version',0)+1
+                engine = st.selectbox('Handwriting reader', ['PaddleOCR (trial)', 'TrOCR Small'], key='ocr_engine')
+                st.caption('PaddleOCR is a local trial. The first read takes longer while the model loads. Switching readers keeps your current answers until you click Read handwriting locally again.')
                 integer_only = st.checkbox('Recognize integers only', value=True,
-                    help='Allow digits and an optional leading minus sign, without spaces. Blank readings remain possible. Applies only to answers, not team headers.')
+                    help='Accept digits and an optional leading minus sign. PaddleOCR normalizes a space after a minus and flags other non-integer readings for manual entry. TrOCR constrains generated characters. Applies only to answers, not team headers.')
                 if st.button('Read handwriting locally', type='primary'):
                     bar = st.progress(0.)
                     try:
-                        readings = reader().read(crops, bar.progress, integer_only=integer_only)
+                        readings = reader(engine).read(crops, bar.progress, integer_only=integer_only)
                         for row,(text,reason) in zip(st.session_state.rows,readings):
                             row.update(Answer=text,Warning=reason,Reviewed=False)
                         st.session_state.editor_version += 1
@@ -144,7 +149,7 @@ with grade_tab:
                         box = tuple(cols[i].number_input(field.replace('_',' ').title()+' '+label, min_value=0.,max_value=1.,value=value,step=.005,key=field+label) for i,(label,value) in enumerate(zip(['X','Y','Width','Height'],[.1,.02,.35,.03])))
                         if st.button('Recognize '+field.replace('_',' '), key='read_'+field):
                             try:
-                                text = reader().read([region(image,box)], integer_only=False)[0][0]
+                                text = reader(engine).read([region(image,box)], integer_only=False)[0][0]
                                 st.session_state['pending_'+field] = text
                                 st.rerun()
                             except Exception as exc:

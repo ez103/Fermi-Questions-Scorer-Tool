@@ -85,5 +85,11 @@ exec(compile(Path({str(ROOT/'app.py')!r}).read_text(encoding='utf-8'), {str(ROOT
         app.session_state['editor_version']+=1
         app.run(timeout=30)
         self.assertTrue(any(m.value=='1 / 300' for m in app.metric))
+        self.assertEqual(app.selectbox(key='ocr_engine').value, 'PaddleOCR (trial)')
+        app.selectbox(key='ocr_engine').select('TrOCR Small').run(timeout=30)
+        self.assertEqual(app.session_state['rows'][0]['Answer'], '2')
+        app.selectbox(key='ocr_engine').select('PaddleOCR (trial)').run(timeout=30)
+        self.assertEqual(app.session_state['rows'][0]['Answer'], '2')
+        self.assertEqual(len(app.exception), 0)
 
 if __name__=='__main__': unittest.main()

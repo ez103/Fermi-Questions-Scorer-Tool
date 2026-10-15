@@ -1,4 +1,5 @@
 .venv/
+.venv-paddle/
 models/
 data/
 __pycache__/
