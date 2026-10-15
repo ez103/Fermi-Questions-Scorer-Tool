@@ -1,6 +1,6 @@
 # Fermi Questions Scorer Tool
 
-Upload a 60-answer sheet, read handwriting locally, review cropped answers, and grade against a key. The default layout matches the 2026 UT Invitational answer page: **four columns of 15**, numbered down each column (1–15, 16–30, 31–45, 46–60). The original two-column layout is also available. Team numbers beginning B mean middle school; C means high school. Team names and numbers are editable, with optional header OCR. No paid API calls; the grading app loads recognition weights locally only.
+Upload an answer sheet, read handwriting locally, review cropped answers, and grade against a key. Choose a supported layout and adjust the crop positions to match your sheet. Team numbers beginning B mean middle school; C means high school. Team names and numbers are editable, with optional header OCR. No paid API calls; the grading app loads recognition weights locally only.
 
 ## Windows setup
 
@@ -40,11 +40,9 @@ normalizes a Unicode minus and spaces immediately after it, and flags other outp
 for manual entry. It does not turn `O` into `0`, join separated numbers, or remove
 decimal points to force a guess. Blank or faint crops still require review.
 
-Development trial: the supplied font-generated 60-answer sample scored 60/60
-after margin trimming, taking approximately 1.1 seconds for recognition with CPU
-acceleration, excluding model startup. Without trimming it scored 56/60. This is
-a synthetic-font check, not a real-handwriting accuracy estimate. Real sheets
-must still be reviewed. The model receives no answer key.
+Development testing used synthetic handwriting-style text, which does not establish
+real-handwriting accuracy. Real sheets must still be reviewed. The model receives
+no answer key.
 
 macOS/Linux setup: `python3 -m venv .venv-paddle`, then
 `.venv-paddle/bin/python -m pip install -r requirements-paddle.txt`, followed by
@@ -52,11 +50,11 @@ macOS/Linux setup: `python3 -m venv .venv-paddle`, then
 
 ### Grading and records
 
-1. Paste exactly 60 answer-key integers, or upload a UTF-8 plain text file containing them separated by whitespace or commas. Uploaded keys appear in the text box and can be edited there. When a valid key is committed (click outside the text box or press Ctrl+Enter), **all saved records in both divisions automatically recalculate**. Incomplete or invalid keys leave saved scores unchanged.
+1. Paste a complete answer key matching the app's required length, or upload a UTF-8 plain text file containing integers separated by whitespace or commas. Uploaded keys appear in the text box and can be edited there. When a valid key is committed (click outside the text box or press Ctrl+Enter), **all saved records in both divisions automatically recalculate**. Incomplete or invalid keys leave saved scores unchanged.
 2. Confirm the scoring rules. Defaults are an **unconfirmed assumption**: exact 5, difference 1 gives 3, difference 2 gives 1; all other answers and blanks give 0. Change points in the sidebar.
 3. Enter team number (B or C followed by digits) and team name.
-4. Upload a PDF or image. The supplied sample's answer page is page 2; use page 1 for a one-page PDF.
-5. Under **Align page and configure answer areas**, select **2026 UT Invitational (4 columns of 15)** for the new answer sheet, or **Original sheet (2 columns of 30)** for earlier sheets. Verify all 60 red crop rectangles. The new preset was measured from page 2 and covers the space above each answer line, excluding the printed rule and question number. Coordinates are fractions of the full page. Adjust each column's X position, first Y, row spacing, width and height if the scan shifts. Changing the layout resets the current unsaved answer review, so configure it before reading handwriting. Phone photos can be corrected by setting the four page corners clockwise, using fractions of image width/height. The target ratio assumes US Letter.
+4. Upload a PDF or image. For a PDF, select the page containing the answers.
+5. Under **Align page and configure answer areas**, select the appropriate supported layout. Verify every red crop rectangle encloses the handwriting while excluding printed rules and question numbers. Coordinates are fractions of the full page. Adjust each column's X position, first Y, row spacing, width and height if the scan shifts. Changing the layout resets the current unsaved answer review, so configure it before reading handwriting. Phone photos can be corrected by setting the four page corners clockwise, using fractions of image width/height. The target ratio assumes US Letter.
 6. Choose the handwriting reader and click Read handwriting locally. **Recognize integers only** is enabled by default: TrOCR constrains generated characters; PaddleOCR validates its output as described above. Blank readings remain possible. Turn it off for unrestricted recognition; team-header recognition is always unrestricted. This limits the output format, not recognition errors, and has no access to the answer key. Inspect EVERY answer, correct readings, and check Reviewed. Filter to unreviewed items if helpful. Leaving blanks and marking them reviewed confirms that they are genuinely blank.
 7. Scores update when edits are committed (Enter or leave the cell), without rerunning OCR. Final status requires a complete key, valid integers, and review of all answers.
 8. Save records and export CSV. Drafts can be saved. Another Save creates a new record rather than overwriting a team. Saved answers, review flags and Draft/Final status are preserved, while each valid new sidebar key updates the saved answer keys, question-by-question points and totals in the database. Recalculation uses each record's saved scoring rules; changing sidebar points only affects the sheet currently being graded and future saves. Tables and new CSV/JSON exports reflect the updated scores; previously downloaded files do not change. No scan upload or OCR rerun is needed. The records table includes record IDs/status so duplicates remain visible. Separate division filters are available. The app uses one shared answer key for all saved records, so keep different tests in separate databases.
@@ -65,7 +63,7 @@ macOS/Linux setup: `python3 -m venv .venv-paddle`, then
 
 ## Header fields
 
-The supplied page-2 template has no team-name/number header. Enter those manually or configure header crop rectangles for your revised template. Optional header OCR uses the same model, requires verification, and does not identify header locations automatically. Adding a header may shift answer positions: recalibrate the answer crops.
+Enter team details manually or configure header crop rectangles if your sheet includes them. Optional header OCR uses the same model, requires verification, and does not identify header locations automatically. Adding a header may shift answer positions: recalibrate the answer crops.
 
 ## Data and limitations
 
